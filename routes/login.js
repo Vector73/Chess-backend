@@ -10,6 +10,7 @@ async function verifyEmail(email) {
 
 login.post("/sign-up", async (req, res) => {
     const valid = await verifyEmail(req.body.email);
+    console.log(req.body.email, valid);
     if (!valid) {
         return res.json({ success: false, emailNotValid: true });
     }
