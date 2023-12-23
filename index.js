@@ -12,10 +12,11 @@ const { onChallenge } = require('./socket/events/onChallenge');
 const { onAcceptChallenge } = require('./socket/events/onAcceptChallenge');
 const { joinRoom } = require('./socket/events/joinRoom');
 const { onMove } = require('./database/queries');
+const cors = require('cors');
 
 const io = require("socket.io")(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "https://chess-ir64.onrender.com",
     }
 });
 
