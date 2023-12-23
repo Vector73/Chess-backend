@@ -47,7 +47,7 @@ io.use(wrap(sessionMiddleware));
 main().catch(err => console.log(err));
 
 async function main() {
-    await mongoose.connect("mongodb+srv://kunal:kunal@1001@cluster0.4cqi6re.mongodb.net/?retryWrites=true&w=majority/database");
+    await mongoose.connect("mongodb+srv://kunal:kunal@1001@cluster0.4cqi6re.mongodb.net/database?retryWrites=true&w=majority");
 }
 
 var socketIdByUsername = {};
