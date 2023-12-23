@@ -45,36 +45,40 @@ login.post("/sign-up", async (req, res) => {
 
 login.post("/sign-in", async (req, res) => {
     console.log("user")
-    const user = await User.find({ username: req.body.username });
-    if (user.length > 0) {
-        const email = user[0].email;
-        const password = user[0].password;
-        const username = user[0].username;
+    try {
+        const user = await User.find({ username: req.body.username });
+        if (user.length > 0) {
+            const email = user[0].email;
+            const password = user[0].password;
+            const username = user[0].username;
 
-        if (password === req.body.password) {
-            req.session.authenticated = true;
-            req.session.username = username;
-            req.session.email = email;
-            console.log(req.session);
+            if (password === req.body.password) {
+                req.session.authenticated = true;
+                req.session.username = username;
+                req.session.email = email;
+                console.log(req.session);
 
-            await User.findOneAndUpdate({ username: username }, { online: true });
+                await User.findOneAndUpdate({ username: username }, { online: true });
 
-            return res.json({
-                success: true,
-                email: email,
-                username: username,
-            });
+                return res.json({
+                    success: true,
+                    email: email,
+                    username: username,
+                });
+            } else {
+                return res.json({
+                    success: false,
+                    incorrectPassword: true,
+                });
+            }
         } else {
             return res.json({
                 success: false,
-                incorrectPassword: true,
+                noUserFound: true,
             });
         }
-    } else {
-        return res.json({
-            success: false,
-            noUserFound: true,
-        });
+    } catch (e) {
+        res.json({error: e});
     }
 });
 
