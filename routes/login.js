@@ -44,8 +44,8 @@ login.post("/sign-up", async (req, res) => {
 });
 
 login.post("/sign-in", async (req, res) => {
+    console.log("user")
     const user = await User.find({ username: req.body.username });
-    console.log(user)
     if (user.length > 0) {
         const email = user[0].email;
         const password = user[0].password;
