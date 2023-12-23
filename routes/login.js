@@ -1,15 +1,14 @@
 const express = require("express");
 const login = express.Router();
 var User = require("../models/User");
-const validator = require("deep-email-validator");
+const validator = require("email-validator");
 
 async function verifyEmail(email) {
-    const { valid } = await validator.validate(email);
-    return valid; // TODO: Replace to valid
+    return validator.validate(email);
 }
 
 login.post("/sign-up", async (req, res) => {
-    const valid = await verifyEmail(req.body.email);
+    const valid = verifyEmail(req.body.email);
     console.log(req.body.email, valid);
     if (!valid) {
         return res.json({ success: false, emailNotValid: true });
