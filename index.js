@@ -19,6 +19,15 @@ const io = require("socket.io")(server, {
     }
 });
 
+const corsOptions = {
+    origin: 'https://chess-ir64.onrender.com',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json())
 const sessionMiddleware = session({
     secret: 'keyboard cat',
