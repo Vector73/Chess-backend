@@ -3,7 +3,7 @@ const login = express.Router();
 var User = require("../models/User");
 const validator = require("email-validator");
 
-async function verifyEmail(email) {
+function verifyEmail(email) {
     return validator.validate(email);
 }
 
