@@ -13,7 +13,7 @@ const { onAcceptChallenge } = require('./socket/events/onAcceptChallenge');
 const { joinRoom } = require('./socket/events/joinRoom');
 const { onMove } = require('./database/queries');
 const cors = require('cors');
-
+require('dotenv').config();
 const io = require("socket.io")(server, {
     cors: {
         origin: "https://chess-ir64.onrender.com",
@@ -47,8 +47,12 @@ io.use(wrap(sessionMiddleware));
 main().catch(err => console.log(err));
 
 async function main() {
-    mongoose.connect("mongodb+srv://kunal:kunal%401001@cluster0.4cqi6re.mongodb.net/database?retryWrites=true&w=majority")
-    .then(() => {console.log("mongo conn")}).catch((e) => {console.log(e)});
+    mongoose.connect(process.env.MONGODB_URI)
+        .then(() => {
+            console.log("Database connected");
+        }).catch((e) => {
+            console.log(e);
+        });
 }
 
 var socketIdByUsername = {};
