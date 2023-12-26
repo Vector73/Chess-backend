@@ -11,7 +11,7 @@ async function joinRoom(socket, username) {
         }).exec();
 
         if (game) {
-            socket.join(game._id);
+            socket.join(game._id.toString());
         }
     } catch (e) { }
 }

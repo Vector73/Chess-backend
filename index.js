@@ -64,7 +64,6 @@ io.on("connection", async (socket) => {
 
     if (socket.request.session.username) {
         socketIdByUsername[socket.request.session.username] = socket.id;
-        console.log("conn", socket.request.session.username);
         joinRoom(socket, socket.request.session.username)
     }
     socket.on("username", ({ username, reconnect }) => {
@@ -78,29 +77,30 @@ io.on("connection", async (socket) => {
     socket.on("disconnect", async () => {
         // delete socketIdByUsername[socketUsernameById[socket.id]];
         // delete socketUsernameById[socket.id];
-        console.log(socketIdByUsername, socket.connected);
         io.emit("onlineUsers", { online: Object.keys(socketIdByUsername) })
         console.log("Disconnected...");
     })
 
     socket.on("reconnect", () => {
-        console.log("recooonected")
+        console.log("reconnected");
     })
 
-    socket.on("challenge", ({ player, challenger, handshake, time }) => {
-        onChallenge(socket, socketIdByUsername[player], challenger, player, handshake, time);
+    socket.on("challenge", async ({ player, challenger, handshake, time }) => {
+        await onChallenge(socket, socketIdByUsername[player], challenger, player, handshake, time);
     })
 
     socket.on("acceptChallenge", async ({ opponent, user, time }) => {
-        if (socketIdByUsername[opponent] && socketIdByUsername[user]) {
-            const chessGame = await onAcceptChallenge(socket, socketIdByUsername[opponent], socketIdByUsername[user], opponent, user, time * 60000);
+        const userId = socketIdByUsername[user];
+        const opponentId = socketIdByUsername[opponent];
+        if (userId && opponentId) {
+            const chessGame = await onAcceptChallenge(socket, opponentId, userId, opponent, user, time * 60000);
             activeGames[chessGame.id] = chessGame;
-            console.log(activeGames);
+            chessGame.startGame(io);
+            io.to(chessGame.id).emit("clearChat");
         }
     })
 
     socket.on("joinRoom", ({ gameId }) => {
-        console.log("join")
         socket.join(gameId);
     })
 
@@ -129,14 +129,15 @@ io.on("connection", async (socket) => {
         }
     })
 
-    socket.on("move", ({ fen, gameId, move, opponent }) => {
-        onMove(fen, gameId, move);
+    socket.on("message", ({gameId, sender, content, key}) => {
+        socket.to(gameId).emit("sendMessage", {sender, content, key})
+    })
+
+    socket.on("move", async ({ fen, gameId, move, opponent }) => {
+        await onMove(fen, gameId, move);
         const chessGame = activeGames[gameId];
         socket.to(gameId).emit("pushMove", { fen, opponent, move });
         if (chessGame) {
-            if (!chessGame.nmoves) {
-                chessGame.startGame(io);
-            }
             chessGame.move(io, fen, move);
         }
     })

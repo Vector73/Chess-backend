@@ -19,11 +19,11 @@ async function onAcceptChallenge(socket, playerId, opponentId, player, opponent,
     })
 
     const game = await _game.save()
-    // To player who challenged
-    console.log(game)
-    console.log(playerId, opponentId)
+
+    // To the player who challenged
     socket.to(playerId).emit("joinGame", { opponent: opponent, gameId: game._id, time, color: white > 0.5 ? 0 : 1 });
     socket.emit("joinGame", { opponent: player, gameId: game._id, time, color: white > 0.5 ? 1 : 0 });
+
     const chessGame = new ChessGame(game._id, whitePlayer, blackPlayer, time);
     return chessGame;
 }

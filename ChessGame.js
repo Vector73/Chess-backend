@@ -1,5 +1,5 @@
 const { Chess } = require("chess.js");
-const { changeStatus } = require("./database/queries");
+const { changeStatus, deleteGame } = require("./database/queries");
 class ChessGame {
     constructor(id, white, black, initialTime = 600000) {
         this.id = id.toString();
@@ -13,6 +13,7 @@ class ChessGame {
             white: initialTime,
             black: initialTime,
         };
+        this.abortTime = 15;
         this.turn = true;
         this.game = new Chess(this.fen);
         this.drawRequestsLeft = {
@@ -25,14 +26,16 @@ class ChessGame {
 
     move(io, fen, move) {
         if (!this.gameInProgress) return;
+        this.abortTime = 15;
         this.game.move({ from: move.from, to: move.to, promotion: move.promotion });
         this.fen = fen;
         this.nmoves += 1;
         if (this.game.isCheckmate()) {
             this.gameOver();
-            io.to(this.id).emit('gameOver', { winner: this.turn, reason: "checkmate" });
-            const color = this.turn ? 'w' : 'b';
-            changeStatus(this.id, color, this.getPlayerByColor(color));
+            const winColor = this.turn ? 'w' : 'b';
+            const winner = this.getPlayerByColor(winColor);
+            io.to(this.id).emit('gameOver', { winner: winner, reason: "checkmate" });
+            changeStatus(this.id, winColor, winner);
             return;
         }
 
@@ -54,17 +57,17 @@ class ChessGame {
     resign(io, color) {
         if (!this.gameInProgress) return;
         this.gameOver();
-        io.to(this.id).emit('gameOver', { winner: !color, reason: "resignation of opponent" });
-        clearInterval(this.gameTimer);
         const winColor = !color ? 'w' : 'b';
-        changeStatus(this.id, winColor, this.getPlayerByColor(winColor));
+        const winner = this.getPlayerByColor(winColor);
+        io.to(this.id).emit('gameOver', { winner: winner, reason: "resignation of opponent" });
+        clearInterval(this.gameTimer);
+        changeStatus(this.id, winColor, winner);
     }
 
     draw(io) {
         if (!this.gameInProgress) return;
         this.gameOver();
         io.to(this.id).emit('gameOver', { reason: "agreement", draw: true });
-        clearInterval(this.gameTimer);
         changeStatus(this.id, 'd', 'draw');
     }
 
@@ -77,20 +80,30 @@ class ChessGame {
 
     startGame(io) {
         this.gameInProgress = true;
+        io.to(this.id).emit("clearChat");
         this.startGameTimer(io);
     }
 
     startGameTimer(io) {
         this.gameTimer = setInterval(() => {
             this.updateGameTime();
+            if (this.nmoves < 2) {
+                this.abortTime -= 1;
+            }
             const gameState = this.getGameState();
             io.to(this.id).emit('gameState', gameState);
-
+            if (this.abortTime <= 0) {
+                this.gameOver();
+                io.to(this.id).emit('gameOver', {abort: true});
+                deleteGame(this.id);
+                return;
+            }
             if (this.isGameTimeExpired()) {
                 this.gameOver();
-                io.to(this.id).emit('gameOver', { winner: !this.turn, reason: "timeout" });
-                const color = !this.turn ? 'w' : 'b';
-                changeStatus(this.id, color, this.getPlayerByColor(color));
+                const winColor = !this.turn? 'w' : 'b';
+                const winner = this.getPlayerByColor(winColor);
+                io.to(this.id).emit('gameOver', { winner: winner, reason: "timeout" });
+                changeStatus(this.id, winColor, winner);
             }
         }, 1000);
     }
@@ -127,6 +140,7 @@ class ChessGame {
             white: this.white,
             black: this.black,
             time: this.time,
+            abortTime: this.abortTime,
         };
     }
 

@@ -14,7 +14,6 @@ game.post("/games", async (req, res) => {
         }).exec();
 
         if (game) {
-            console.log(username, game.players.white.username)
             const color = game.players.white.username === username ? 1 : 0;
             const opponent = color ? game.players.black.username : game.players.white.username;
             const args = {
@@ -41,15 +40,15 @@ game.post("/completedGames", async (req, res) => {
             ],
             status: { $ne: "pending" },
         }).sort({ timestamp: -1 }).exec();
-    
+
         const gamesWithTimestamp = games.map(game => ({
             ...game.toObject(),
             timestamp: game._id.getTimestamp(),
         }));
-    
+
         return res.json(gamesWithTimestamp);
     } catch (e) {
-        return res.json({ failed: true});
+        return res.json({ failed: true });
     }
 })
 
