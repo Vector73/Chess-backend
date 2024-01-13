@@ -46,6 +46,8 @@ class ChessGame {
                 reason = "insufficient material";
             } else if (this.game.isThreefoldRepetition()) {
                 reason = "repetition";
+            } else if (this.game.isStalemate()) {
+                reason = "stalemate";
             }
             io.to(this.id).emit('gameOver', { reason: reason, draw: true });
             changeStatus(this.id, 'd', 'draw');
