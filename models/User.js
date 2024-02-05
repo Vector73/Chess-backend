@@ -5,6 +5,7 @@ const UserSchema = new mongoose.Schema({
      email: String,    
      password: String,
      online: Boolean,
+     otpSecret: String,
 }); 
 
 var User = mongoose.model("user", UserSchema);

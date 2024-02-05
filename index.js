@@ -129,15 +129,14 @@ io.on("connection", async (socket) => {
         }
     })
 
-    socket.on("message", ({gameId, sender, content, key}) => {
-        socket.to(gameId).emit("sendMessage", {sender, content, key})
+    socket.on("message", ({ gameId, sender, content, key }) => {
+        socket.to(gameId).emit("sendMessage", { sender, content, key })
     })
 
     socket.on("move", async ({ fen, gameId, move, opponent }) => {
-        await onMove(fen, gameId, move);
         const chessGame = activeGames[gameId];
-        socket.to(gameId).emit("pushMove", { fen, opponent, move });
-        if (chessGame) {
+        if (chessGame && chessGame.gameInProgress) {
+            socket.to(gameId).emit("pushMove", { fen, opponent, move });
             chessGame.move(io, fen, move);
         }
     })
