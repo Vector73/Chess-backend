@@ -45,10 +45,10 @@ login.post("/sign-up", async (req, res) => {
     const email_exists = await User.find({ email: req.body.email });
     const username_exists = await User.find({ username: req.body.username });
 
-    if (email_exists.length > 0 && email_exists.online) {
+    if (email_exists.length > 0) {
         return res.json({ success: false, emailExists: true });
     }
-    if (username_exists.length > 0 && username_exists.online) {
+    if (username_exists.length > 0) {
         return res.json({ success: false, usernameExists: true });
     }
 
